@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Tracker - Confronta i Prezzi</title>
+    <style>
+        :root {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f28;
+            --bg-card: #232930;
+            --accent-green: #00ff88;
+            --accent-red: #ff4466;
+            --accent-yellow: #ffd700;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --border: #3a4049;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-green);
+            border-radius: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                var(--accent-green) 0%, 
+                var(--accent-yellow) 50%, 
+                var(--accent-red) 100%);
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .card::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            top: 20px;
+            color: var(--accent-green);
+            font-size: 1.5rem;
+        }
+
+        .scan-section {
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background: var(--text-primary);
+            transform: translateX(5px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        #video-container {
+            position: relative;
+            width: 100%;
+            margin: 20px 0;
+            display: none;
+            border: 2px solid var(--accent-green);
+        }
+
+        #video {
+            width: 100%;
+            display: block;
+        }
+
+        .scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-red);
+            top: 50%;
+            left: 0;
+            animation: scan 2s linear infinite;
+            box-shadow: 0 0 10px var(--accent-red);
+        }
+
+        @keyframes scan {
+            0%, 100% { top: 20%; }
+            50% { top: 80%; }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: var(--accent-green);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+
+        .price-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        #history-section {
+            margin-top: 40px;
+        }
+
+        .history-item {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--border);
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            border-left-color: var(--accent-green);
+            transform: translateX(5px);
+        }
+
+        .history-item.cheaper {
+            border-left-color: var(--accent-green);
+        }
+
+        .history-item.expensive {
+            border-left-color: var(--accent-red);
+        }
+
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .product-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .price-large {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-green);
+        }
+
+        .price-per-unit {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .comparison {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--bg-primary);
+            border-left: 3px solid var(--accent-yellow);
+            font-size: 0.9rem;
+        }
+
+        .comparison.better {
+            border-left-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .comparison.worse {
+            border-left-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .barcode-display {
+            background: var(--bg-secondary);
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid var(--accent-yellow);
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .delete-btn:hover {
+            background: #ff0033;
+        }
+
+        #form-section {
+            display: none;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: var(--bg-secondary);
+            padding: 15px;
+            text-align: center;
+            border-top: 2px solid var(--accent-green);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-green);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+                letter-spacing: 2px;
+            }
+            
+            .price-input-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-bar {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⟨ PRICE TRACKER ⟩</h1>
+            <div class="subtitle">Monitora • Confronta • Risparmia</div>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="stat-value" id="total-products">0</div>
+                <div class="stat-label">Prodotti</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="total-scans">0</div>
+                <div class="stat-label">Scansioni</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="avg-saving">0%</div>
+                <div class="stat-label">Risparmio Medio</div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 15px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-secondary" id="export-btn" style="margin: 0; padding: 10px; font-size: 0.85rem;">
+                    💾 Esporta Backup
+                </button>
+                <button class="btn btn-secondary" id="import-btn" style="margin: 0; padding: 10px; font-size: 0.85rem;">
+                    📥 Importa Backup
+                </button>
+            </div>
+            <input type="file" id="import-file" accept=".json" style="display: none;">
+        </div>
+
+        <div class="card scan-section">
+            <button class="btn" id="scan-btn">📷 Scansiona Codice a Barre</button>
+            <button class="btn btn-secondary" id="manual-btn">⌨ Inserimento Manuale</button>
+            
+            <div id="video-container">
+                <video id="video" playsinline></video>
+                <div class="scanner-line"></div>
+            </div>
+        </div>
+
+        <div class="card" id="form-section">
+            <h2 style="color: var(--accent-yellow); margin-bottom: 20px;">NUOVO PRODOTTO</h2>
+            
+            <div id="barcode-display" class="barcode-display" style="display: none;">
+                <strong>BARCODE:</strong> <span id="scanned-barcode"></span>
+            </div>
+
+            <form id="product-form">
+                <div class="form-group">
+                    <label for="barcode">Codice a Barre</label>
+                    <input type="text" id="barcode" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="product-name">Nome Prodotto</label>
+                    <input type="text" id="product-name" required placeholder="es. Pasta Barilla">
+                </div>
+
+                <div class="form-group price-input-group">
+                    <div>
+                        <label for="price">Prezzo (€)</label>
+                        <input type="number" id="price" step="0.01" required placeholder="1.20">
+                    </div>
+                    <div>
+                        <label for="quantity">Quantità (g/ml)</label>
+                        <input type="number" id="quantity" required placeholder="500">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="unit-type">Unità di Misura</label>
+                    <select id="unit-type" required>
+                        <option value="g">Grammi (g)</option>
+                        <option value="ml">Millilitri (ml)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="supermarket">Supermercato</label>
+                    <input type="text" id="supermarket" required placeholder="es. Bennet, Esselunga">
+                </div>
+
+                <button type="submit" class="btn">💾 Salva Prodotto</button>
+                <button type="button" class="btn btn-secondary" id="cancel-btn">✕ Annulla</button>
+            </form>
+        </div>
+
+        <div id="history-section">
+            <h2 style="color: var(--accent-yellow); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;">
+                ⟨ Storico Acquisti ⟩
+            </h2>
+            <div id="history-list"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
+    <script>
+        // Database locale
+        let products = JSON.parse(localStorage.getItem('priceTrackerProducts') || '[]');
+        
+        // Elementi DOM
+        const scanBtn = document.getElementById('scan-btn');
+        const manualBtn = document.getElementById('manual-btn');
+        const videoContainer = document.getElementById('video-container');
+        const video = document.getElementById('video');
+        const formSection = document.getElementById('form-section');
+        const productForm = document.getElementById('product-form');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const historyList = document.getElementById('history-list');
+        const barcodeInput = document.getElementById('barcode');
+        const barcodeDisplay = document.getElementById('barcode-display');
+        const scannedBarcodeSpan = document.getElementById('scanned-barcode');
+
+        let codeReader = null;
+        let currentStream = null;
+
+        // Inizializza
+        renderHistory();
+        updateStats();
+
+        // BACKUP/RESTORE FUNCTIONS
+        const exportBtn = document.getElementById('export-btn');
+        const importBtn = document.getElementById('import-btn');
+        const importFile = document.getElementById('import-file');
+
+        // Esporta backup
+        exportBtn.addEventListener('click', () => {
+            const dataStr = JSON.stringify(products, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            const date = new Date().toISOString().split('T')[0];
+            link.download = `price-tracker-backup-${date}.json`;
+            link.href = url;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            alert('✓ Backup esportato!\nSalva il file in un posto sicuro (Google Drive, computer, ecc.)');
+        });
+
+        // Importa backup
+        importBtn.addEventListener('click', () => {
+            importFile.click();
+        });
+
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    
+                    if (!Array.isArray(importedData)) {
+                        throw new Error('Formato file non valido');
+                    }
+
+                    // Chiedi conferma
+                    const confirmMsg = `Trovati ${importedData.length} prodotti nel backup.\n\nVuoi:\n- SOSTITUIRE i dati attuali (${products.length} prodotti)\n- UNIRE i dati (totale: ${products.length + importedData.length} prodotti)\n\nClicca OK per SOSTITUIRE, Annulla per UNIRE`;
+                    
+                    if (confirm(confirmMsg)) {
+                        // Sostituisci
+                        products = importedData;
+                    } else {
+                        // Unisci (evita duplicati basati su barcode+data)
+                        const existing = new Set(products.map(p => `${p.barcode}-${p.date}`));
+                        const newProducts = importedData.filter(p => !existing.has(`${p.barcode}-${p.date}`));
+                        products = [...products, ...newProducts];
+                    }
+
+                    localStorage.setItem('priceTrackerProducts', JSON.stringify(products));
+                    renderHistory();
+                    updateStats();
+                    
+                    alert(`✓ Backup importato con successo!\nTotale prodotti: ${products.length}`);
+                } catch (err) {
+                    alert('✗ Errore nell\'importazione:\n' + err.message);
+                }
+            };
+            
+            reader.readAsText(file);
+            importFile.value = ''; // Reset input
+        });
+
+        // Scanner barcode
+        scanBtn.addEventListener('click', async () => {
+            try {
+                videoContainer.style.display = 'block';
+                scanBtn.textContent = '⏹ Ferma Scanner';
+                
+                if (!codeReader) {
+                    codeReader = new ZXing.BrowserBarcodeReader();
+                }
+
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
+                video.play();
+
+                codeReader.decodeFromVideoElement(video, (result, err) => {
+                    if (result) {
+                        const barcode = result.text;
+                        console.log('Barcode scansionato:', barcode);
+                        stopScanner();
+                        handleScannedBarcode(barcode);
+                    }
+                });
+            } catch (err) {
+                console.error('Errore scanner:', err);
+                alert('Impossibile accedere alla fotocamera. Usa l\'inserimento manuale.');
+                stopScanner();
+            }
+        });
+
+        function stopScanner() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            if (codeReader) {
+                codeReader.reset();
+            }
+            video.srcObject = null;
+            videoContainer.style.display = 'none';
+            scanBtn.textContent = '📷 Scansiona Codice a Barre';
+        }
+
+        function handleScannedBarcode(barcode) {
+            barcodeInput.value = barcode;
+            scannedBarcodeSpan.textContent = barcode;
+            barcodeDisplay.style.display = 'block';
+            formSection.style.display = 'block';
+            formSection.scrollIntoView({ behavior: 'smooth' });
+
+            // Cerca storico prodotto
+            const productHistory = products.filter(p => p.barcode === barcode);
+            if (productHistory.length > 0) {
+                const lastEntry = productHistory[productHistory.length - 1];
+                document.getElementById('product-name').value = lastEntry.name;
+                document.getElementById('quantity').value = lastEntry.quantity;
+                document.getElementById('unit-type').value = lastEntry.unitType;
+            }
+        }
+
+        // Inserimento manuale
+        manualBtn.addEventListener('click', () => {
+            formSection.style.display = 'block';
+            barcodeDisplay.style.display = 'none';
+            formSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Auto-completamento quando si inserisce manualmente un barcode
+        barcodeInput.addEventListener('blur', () => {
+            const barcode = barcodeInput.value.trim();
+            if (barcode) {
+                const productHistory = products.filter(p => p.barcode === barcode);
+                if (productHistory.length > 0) {
+                    const lastEntry = productHistory[productHistory.length - 1];
+                    document.getElementById('product-name').value = lastEntry.name;
+                    document.getElementById('quantity').value = lastEntry.quantity;
+                    document.getElementById('unit-type').value = lastEntry.unitType;
+                    
+                    // Mostra messaggio
+                    scannedBarcodeSpan.textContent = barcode + ' (Prodotto già registrato - campi compilati automaticamente)';
+                    barcodeDisplay.style.display = 'block';
+                }
+            }
+        });
+
+        // Cancella form
+        cancelBtn.addEventListener('click', () => {
+            formSection.style.display = 'none';
+            productForm.reset();
+            barcodeDisplay.style.display = 'none';
+        });
+
+        // Salva prodotto
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const barcode = barcodeInput.value;
+            const name = document.getElementById('product-name').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const unitType = document.getElementById('unit-type').value;
+            const supermarket = document.getElementById('supermarket').value;
+            const date = new Date().toISOString();
+
+            const pricePerKgL = unitType === 'g' 
+                ? (price / quantity * 1000).toFixed(2)
+                : (price / quantity * 1000).toFixed(2);
+
+            const product = {
+                barcode,
+                name,
+                price,
+                quantity,
+                unitType,
+                supermarket,
+                date,
+                pricePerKgL: parseFloat(pricePerKgL)
+            };
+
+            products.push(product);
+            localStorage.setItem('priceTrackerProducts', JSON.stringify(products));
+
+            productForm.reset();
+            formSection.style.display = 'none';
+            barcodeDisplay.style.display = 'none';
+            
+            renderHistory();
+            updateStats();
+
+            alert(`✓ Prodotto salvato!\n${name} - €${price}\n${pricePerKgL} €/${unitType === 'g' ? 'kg' : 'L'}`);
+        });
+
+        function renderHistory() {
+            if (products.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">Nessun prodotto registrato.<br>Inizia scansionando un codice a barre!</div>';
+                return;
+            }
+
+            // Raggruppa per barcode e ordina per data
+            const grouped = {};
+            products.forEach(p => {
+                if (!grouped[p.barcode]) grouped[p.barcode] = [];
+                grouped[p.barcode].push(p);
+            });
+
+            // Ordina ogni gruppo per data (più recente prima)
+            Object.keys(grouped).forEach(barcode => {
+                grouped[barcode].sort((a, b) => new Date(b.date) - new Date(a.date));
+            });
+
+            // Ordina i gruppi per data più recente
+            const sortedBarcodes = Object.keys(grouped).sort((a, b) => {
+                return new Date(grouped[b][0].date) - new Date(grouped[a][0].date);
+            });
+
+            historyList.innerHTML = sortedBarcodes.map(barcode => {
+                const entries = grouped[barcode];
+                const latest = entries[0];
+                const previous = entries.length > 1 ? entries[1] : null;
+
+                let comparisonHTML = '';
+                let itemClass = '';
+
+                if (previous) {
+                    const diff = latest.price - previous.price;
+                    const diffPercent = ((diff / previous.price) * 100).toFixed(1);
+                    
+                    if (diff < 0) {
+                        comparisonHTML = `
+                            <div class="comparison better">
+                                ✓ CONVENIENTE! ${Math.abs(diffPercent)}% in meno rispetto a ${previous.supermarket} 
+                                (€${previous.price.toFixed(2)}, ${formatDate(previous.date)})
+                            </div>
+                        `;
+                        itemClass = 'cheaper';
+                    } else if (diff > 0) {
+                        comparisonHTML = `
+                            <div class="comparison worse">
+                                ⚠ PIÙ CARO! +${diffPercent}% rispetto a ${previous.supermarket} 
+                                (€${previous.price.toFixed(2)}, ${formatDate(previous.date)})
+                            </div>
+                        `;
+                        itemClass = 'expensive';
+                    } else {
+                        comparisonHTML = `
+                            <div class="comparison">
+                                = Stesso prezzo dell'ultima volta (${previous.supermarket}, ${formatDate(previous.date)})
+                            </div>
+                        `;
+                    }
+                }
+
+                return `
+                    <div class="history-item ${itemClass}">
+                        <button class="delete-btn" onclick="deleteProduct('${barcode}', ${products.indexOf(latest)})">✕</button>
+                        <div class="product-name">${latest.name}</div>
+                        <div class="price-large">€${latest.price.toFixed(2)}</div>
+                        <div class="price-per-unit">€${latest.pricePerKgL} / ${latest.unitType === 'g' ? 'kg' : 'L'}</div>
+                        <div class="product-meta">
+                            <div class="meta-item">🏪 ${latest.supermarket}</div>
+                            <div class="meta-item">📅 ${formatDate(latest.date)}</div>
+                            <div class="meta-item">📦 ${latest.quantity}${latest.unitType}</div>
+                            <div class="meta-item">🔢 ${barcode}</div>
+                        </div>
+                        ${comparisonHTML}
+                        ${entries.length > 1 ? `<div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">📊 ${entries.length} acquisti registrati</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteProduct(barcode, index) {
+            if (confirm('Eliminare questo prodotto?')) {
+                products.splice(index, 1);
+                localStorage.setItem('priceTrackerProducts', JSON.stringify(products));
+                renderHistory();
+                updateStats();
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function updateStats() {
+            const uniqueProducts = new Set(products.map(p => p.barcode)).size;
+            document.getElementById('total-products').textContent = uniqueProducts;
+            document.getElementById('total-scans').textContent = products.length;
+
+            // Calcola risparmio medio
+            let totalSavings = 0;
+            let comparisons = 0;
+
+            const grouped = {};
+            products.forEach(p => {
+                if (!grouped[p.barcode]) grouped[p.barcode] = [];
+                grouped[p.barcode].push(p);
+            });
+
+            Object.values(grouped).forEach(entries => {
+                if (entries.length > 1) {
+                    entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    const latest = entries[0];
+                    const previous = entries[1];
+                    const savingPercent = ((previous.price - latest.price) / previous.price) * 100;
+                    totalSavings += savingPercent;
+                    comparisons++;
+                }
+            });
+
+            const avgSaving = comparisons > 0 ? (totalSavings / comparisons).toFixed(1) : 0;
+            document.getElementById('avg-saving').textContent = avgSaving + '%';
+        }
+
+        // Esponi funzione delete globalmente
+        window.deleteProduct = deleteProduct;
+    </script>
+</body>
+</html>
